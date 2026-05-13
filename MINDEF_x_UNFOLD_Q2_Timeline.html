@@ -102,11 +102,20 @@
 </div>
 <div id="tooltip" class="tooltip"></div>
 
-<footer>MINDEF x UNFOLD · Generated 12 May 2026 · Shaded = weekend · Orange = today</footer>
+<footer id="footer"></footer>
 
 <script>
-const TODAY  = new Date(2026,4,12);
+
+const TODAY  = new Date();
+TODAY.setHours(0,0,0,0);
+const VSTART = new Date(2026,4,12); // view always starts 12 May
+const PSTART = new Date(2026,4,18); // project start
 const END    = new Date(2026,5,29);
+
+// Update footer with today's date dynamically
+document.getElementById('footer').textContent =
+  'MINDEF x UNFOLD · Today: ' + TODAY.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) +
+  ' · Shaded = weekend · Orange = today';
 
 const MCLASS = {
   'Concept Outline':'m-co','Concept Outline Client Feedback':'m-fb',
@@ -189,7 +198,7 @@ const creatorStarts = {
 };
 
 const allDates = [];
-for(let d=new Date(TODAY); d<=END; d.setDate(d.getDate()+1)) allDates.push(new Date(d));
+for(let d=new Date(VSTART); d<=END; d.setDate(d.getDate()+1)) allDates.push(new Date(d));
 
 function dkey(d){ return d.toISOString().slice(0,10); }
 function sameDay(a,b){ return a.toDateString()===b.toDateString(); }
