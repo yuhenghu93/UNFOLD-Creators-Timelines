@@ -14,7 +14,6 @@
     --text-tertiary:#A09A94; --accent:#D85A30;
     --weekend-bg:rgba(0,0,0,0.03);
     --today-bg:rgba(216,90,48,0.07);
-
     --c-co:#B5D4F4; --c-cot:#0C447C;
     --c-fb:#FAC775; --c-fbt:#633806;
     --c-cf:#9FE1CB; --c-cft:#085041;
@@ -51,7 +50,6 @@
   th.weekend { opacity:0.5; }
   .today-cell { background:var(--today-bg) !important; }
   th.today-cell { border-bottom:2px solid var(--accent); color:var(--accent) !important; font-weight:500; opacity:1 !important; }
-
   tr.creator-row:last-child td { border-bottom:none; }
   tr.creator-row:hover td { background:#F2EFE9; }
   tr.creator-row:hover td.creator-col { background:#F2EFE9; }
@@ -74,13 +72,14 @@
 <header>
   <p class="project-label">Project Timeline · Q2</p>
   <h1>MINDEF × <span>UNFOLD</span></h1>
-  <p class="subtitle">12 May – 29 June 2026</p>
+  <p class="subtitle">12 May – 30 June 2026 · All dates are due dates</p>
   <div class="meta-row">
     <div class="meta-item"><span class="meta-label">Creators</span><span class="meta-val">5</span></div>
     <div class="meta-item"><span class="meta-label">Fauzi &amp; Dargo start</span><span class="meta-val">18 May</span></div>
-    <div class="meta-item"><span class="meta-label">Nancy &amp; Wendy start</span><span class="meta-val">25 May</span></div>
+    <div class="meta-item"><span class="meta-label">Nancy starts</span><span class="meta-val">25 May</span></div>
     <div class="meta-item"><span class="meta-label">Siyu starts</span><span class="meta-val">27 May</span></div>
-    <div class="meta-item"><span class="meta-label">Deadline</span><span class="meta-val">29 Jun</span></div>
+    <div class="meta-item"><span class="meta-label">Wendy starts</span><span class="meta-val">2 Jun</span></div>
+    <div class="meta-item"><span class="meta-label">Deadline</span><span class="meta-val">30 Jun</span></div>
   </div>
 </header>
 
@@ -101,100 +100,97 @@
   <table id="gantt"></table>
 </div>
 <div id="tooltip" class="tooltip"></div>
-
 <footer id="footer"></footer>
 
 <script>
-
 const TODAY  = new Date();
 TODAY.setHours(0,0,0,0);
-const VSTART = new Date(2026,4,12); // view always starts 12 May
-const PSTART = new Date(2026,4,18); // project start
-const END    = new Date(2026,5,29);
+const VSTART = new Date(2026,4,12); // 12 May — fixed view start
+const END    = new Date(2026,6,1);  // 1 Jul — used as exclusive upper bound so 30 Jun is included
 
-// Update footer with today's date dynamically
 document.getElementById('footer').textContent =
-  'MINDEF x UNFOLD · Today: ' + TODAY.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) +
-  ' · Shaded = weekend · Orange = today';
+  'MINDEF x UNFOLD \u00b7 Today: ' + TODAY.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) +
+  ' \u00b7 All milestone dates are due dates \u00b7 Shaded = weekend \u00b7 Orange = today';
 
 const MCLASS = {
-  'Concept Outline':'m-co','Concept Outline Client Feedback':'m-fb',
-  'Concept Outline Final':'m-cf','Production':'m-pr',
-  'Edit V1':'m-e1','Edit V1 Client Feedback':'m-fb',
-  'Edit V2':'m-e2','Edit V2 Final Approval':'m-ap','Publication':'m-pb'
+  'Concept Outline':                'm-co',
+  'Concept Outline Client Feedback':'m-fb',
+  'Concept Outline Final':          'm-cf',
+  'Production':                     'm-pr',
+  'Edit V1':                        'm-e1',
+  'Edit V1 Client Feedback':        'm-fb',
+  'Edit V2':                        'm-e2',
+  'Edit V2 Final Approval':         'm-ap',
+  'Publication':                    'm-pb'
 };
 const ABBR = {
-  'Concept Outline':'CO','Concept Outline Client Feedback':'FB',
-  'Concept Outline Final':'CF','Production':'PR',
-  'Edit V1':'E1','Edit V1 Client Feedback':'FB',
-  'Edit V2':'E2','Edit V2 Final Approval':'✓','Publication':'PB'
+  'Concept Outline':                'CO',
+  'Concept Outline Client Feedback':'FB',
+  'Concept Outline Final':          'CF',
+  'Production':                     'PR',
+  'Edit V1':                        'E1',
+  'Edit V1 Client Feedback':        'FB',
+  'Edit V2':                        'E2',
+  'Edit V2 Final Approval':         '\u2713',
+  'Publication':                    'PB'
 };
 
-// Per-creator schedules, all weekdays verified
 const schedules = {
   Nancy: {
-    '2026-05-26':'Concept Outline',
-    '2026-05-28':'Concept Outline Client Feedback',
-    '2026-06-01':'Concept Outline Final',
-    '2026-06-03':'Production',
-    '2026-06-10':'Edit V1',
-    '2026-06-11':'Edit V1 Client Feedback',
-    '2026-06-17':'Edit V2',
-    '2026-06-18':'Edit V2 Final Approval',
-    '2026-06-22':'Publication'
+    '2026-05-26': 'Concept Outline',
+    '2026-05-28': 'Concept Outline Client Feedback',
+    '2026-06-01': 'Concept Outline Final',
+    '2026-06-03': 'Production',
+    '2026-06-10': 'Edit V1',
+    '2026-06-11': 'Edit V1 Client Feedback',
+    '2026-06-17': 'Edit V2',
+    '2026-06-18': 'Edit V2 Final Approval',
+    '2026-06-22': 'Publication'
   },
   Wendy: {
-    '2026-05-26':'Concept Outline',
-    '2026-05-28':'Concept Outline Client Feedback',
-    '2026-06-01':'Concept Outline Final',
-    '2026-06-03':'Production',
-    '2026-06-10':'Edit V1',
-    '2026-06-11':'Edit V1 Client Feedback',
-    '2026-06-17':'Edit V2',
-    '2026-06-18':'Edit V2 Final Approval',
-    '2026-06-23':'Publication'
+    '2026-06-02': 'Concept Outline',
+    '2026-06-04': 'Concept Outline Client Feedback',
+    '2026-06-08': 'Concept Outline Final',
+    '2026-06-10': 'Production',
+    '2026-06-17': 'Edit V1',
+    '2026-06-22': 'Edit V1 Client Feedback',
+    '2026-06-25': 'Edit V2',
+    '2026-06-29': 'Edit V2 Final Approval',
+    '2026-06-30': 'Publication'
   },
   Fauzi: {
-    '2026-05-19':'Concept Outline',
-    '2026-05-21':'Concept Outline Client Feedback',
-    '2026-05-25':'Concept Outline Final',
-    '2026-05-27':'Production',
-    '2026-06-03':'Edit V1',
-    '2026-06-04':'Edit V1 Client Feedback',
-    '2026-06-10':'Edit V2',
-    '2026-06-11':'Edit V2 Final Approval',
-    '2026-06-24':'Publication'
+    '2026-05-19': 'Concept Outline',
+    '2026-05-21': 'Concept Outline Client Feedback',
+    '2026-05-25': 'Concept Outline Final',
+    '2026-05-27': 'Production',
+    '2026-06-03': 'Edit V1',
+    '2026-06-04': 'Edit V1 Client Feedback',
+    '2026-06-10': 'Edit V2',
+    '2026-06-11': 'Edit V2 Final Approval',
+    '2026-06-24': 'Publication'
   },
   Siyu: {
-    '2026-05-28':'Concept Outline',
-    '2026-06-01':'Concept Outline Client Feedback',
-    '2026-06-03':'Concept Outline Final',
-    '2026-06-04':'Production',
-    '2026-06-11':'Edit V1',
-    '2026-06-16':'Edit V1 Client Feedback',
-    '2026-06-18':'Edit V2',
-    '2026-06-22':'Edit V2 Final Approval',
-    '2026-06-25':'Publication'
+    '2026-05-28': 'Concept Outline',
+    '2026-06-01': 'Concept Outline Client Feedback',
+    '2026-06-03': 'Concept Outline Final',
+    '2026-06-04': 'Production',
+    '2026-06-11': 'Edit V1',
+    '2026-06-16': 'Edit V1 Client Feedback',
+    '2026-06-18': 'Edit V2',
+    '2026-06-22': 'Edit V2 Final Approval',
+    '2026-06-25': 'Publication'
   },
   Dargo: {
-    '2026-05-19':'Concept Outline',
-    '2026-05-21':'Concept Outline Client Feedback',
-    '2026-05-25':'Concept Outline Final',
-    '2026-05-27':'Production',
-    '2026-06-03':'Edit V1',
-    '2026-06-04':'Edit V1 Client Feedback',
-    '2026-06-10':'Edit V2',
-    '2026-06-11':'Edit V2 Final Approval',
-    '2026-06-25':'Publication'
+    '2026-05-19': 'Concept Outline',
+    '2026-05-21': 'Concept Outline Client Feedback',
+    '2026-05-25': 'Concept Outline Final',
+    '2026-05-27': 'Production',
+    '2026-06-03': 'Edit V1',
+    '2026-06-04': 'Edit V1 Client Feedback',
+    '2026-06-10': 'Edit V2',
+    '2026-06-11': 'Edit V2 Final Approval',
+    '2026-06-25': 'Publication'
   }
-};
-
-const creatorStarts = {
-  Nancy: new Date(2026,4,25),
-  Wendy: new Date(2026,4,25),
-  Fauzi: new Date(2026,4,18),
-  Siyu:  new Date(2026,4,27),
-  Dargo: new Date(2026,4,18),
 };
 
 const allDates = [];
@@ -213,7 +209,6 @@ allDates.forEach(d=>{
 const table=document.getElementById('gantt');
 const tip=document.getElementById('tooltip');
 
-// Row 1: month headers
 const r1=table.insertRow();
 const h0=document.createElement('th'); h0.className='creator-col'; h0.textContent='Creator'; r1.appendChild(h0);
 let firstM=true;
@@ -223,7 +218,6 @@ monthOrder.forEach(mn=>{
   th.colSpan=monthMap[mn].length; th.textContent=mn; r1.appendChild(th); firstM=false;
 });
 
-// Row 2: day numbers
 const r2=table.insertRow();
 const h1=document.createElement('th'); h1.className='creator-col'; r2.appendChild(h1);
 let prevMonth=-1;
@@ -240,9 +234,7 @@ allDates.forEach(d=>{
   r2.appendChild(th); prevMonth=d.getMonth();
 });
 
-// Creator rows
-Object.entries(schedules).forEach(([creator, sched])=>{
-  const pstart = creatorStarts[creator];
+Object.entries(schedules).forEach(([creator,sched])=>{
   const tr=document.createElement('tr'); tr.className='creator-row';
   const tn=document.createElement('td'); tn.className='creator-col'; tn.textContent=creator; tr.appendChild(tn);
   let pm2=-1;
@@ -256,13 +248,12 @@ Object.entries(schedules).forEach(([creator, sched])=>{
     if(isWknd)   cls+=' weekend';
     if(isTdy)    cls+=' today-cell';
     td.className=cls;
-
     const ms=sched[dkey(d)];
     if(ms){
       const sp=document.createElement('span');
       sp.className='milestone '+(MCLASS[ms]||'');
       sp.textContent=ABBR[ms]||'?';
-      sp.dataset.tip=`${creator} · ${ms} · ${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}`;
+      sp.dataset.tip=`${creator} \u00b7 ${ms} due \u00b7 ${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}`;
       sp.addEventListener('mouseenter',()=>{ tip.textContent=sp.dataset.tip; tip.style.display='block'; });
       sp.addEventListener('mousemove', e=>{ tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY-32)+'px'; });
       sp.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
