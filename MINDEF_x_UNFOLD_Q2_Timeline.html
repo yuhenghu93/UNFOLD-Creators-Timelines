@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MINDEF x UNFOLD — Q2 Creator Timeline</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --bg:#F7F5F0; --surface:#FFFFFF;
+    --border:#E2DDD6; --border-strong:#C8C2B8;
+    --text-primary:#1A1815; --text-secondary:#6B6560;
+    --text-tertiary:#A09A94; --accent:#D85A30;
+    --weekend-bg:rgba(0,0,0,0.03);
+    --today-bg:rgba(216,90,48,0.07);
+
+    --c-co:#B5D4F4; --c-cot:#0C447C;
+    --c-fb:#FAC775; --c-fbt:#633806;
+    --c-cf:#9FE1CB; --c-cft:#085041;
+    --c-pr:#CECBF6; --c-prt:#3C3489;
+    --c-e1:#F5C4B3; --c-e1t:#712B13;
+    --c-e2:#C0DD97; --c-e2t:#27500A;
+    --c-ap:#F4C0D1; --c-apt:#72243E;
+    --c-pb:#2C2C2A; --c-pbt:#F1EFE8;
+  }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text-primary); min-height:100vh; padding:2.5rem 2rem; }
+  header { margin-bottom:2rem; }
+  .project-label { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.12em; color:var(--accent); text-transform:uppercase; margin-bottom:8px; }
+  h1 { font-size:26px; font-weight:300; letter-spacing:-0.02em; margin-bottom:4px; }
+  h1 span { font-weight:500; }
+  .subtitle { font-size:13px; color:var(--text-tertiary); font-family:'DM Mono',monospace; }
+  .meta-row { display:flex; gap:2rem; margin-top:1.5rem; flex-wrap:wrap; }
+  .meta-item { display:flex; flex-direction:column; gap:2px; }
+  .meta-label { font-size:10px; font-family:'DM Mono',monospace; letter-spacing:0.08em; color:var(--text-tertiary); text-transform:uppercase; }
+  .meta-val { font-size:18px; font-weight:500; color:var(--text-primary); }
+  .legend { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:1.25rem; }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-secondary); }
+  .legend-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+  .today-swatch { width:10px; height:10px; border-radius:2px; background:var(--today-bg); border:1.5px solid var(--accent); flex-shrink:0; }
+  .wknd-swatch { width:10px; height:10px; border-radius:2px; background:var(--weekend-bg); border:0.5px solid var(--border); flex-shrink:0; }
+  .table-wrap { overflow-x:auto; background:var(--surface); border:0.5px solid var(--border); border-radius:12px; }
+  table { border-collapse:collapse; font-size:12px; width:max-content; min-width:100%; }
+  .creator-col { position:sticky; left:0; background:var(--surface); z-index:3; min-width:110px; padding:8px 12px; font-size:13px; font-weight:500; color:var(--text-primary); border-right:1px solid var(--border-strong); white-space:nowrap; }
+  th.creator-col { background:var(--surface); border-bottom:1px solid var(--border-strong); color:var(--text-tertiary); font-size:11px; font-weight:400; font-family:'DM Mono',monospace; letter-spacing:0.05em; text-transform:uppercase; }
+  th.month-header { font-size:11px; font-weight:500; font-family:'DM Mono',monospace; color:var(--text-secondary); text-align:left; padding:8px 6px 4px; border-bottom:1px solid var(--border); letter-spacing:0.05em; text-transform:uppercase; background:var(--surface); }
+  th.date-cell { font-size:10px; font-family:'DM Mono',monospace; color:var(--text-tertiary); text-align:center; padding:4px 1px; border-bottom:1px solid var(--border); min-width:22px; width:22px; background:var(--surface); }
+  td.date-cell { padding:2px 1px; text-align:center; height:36px; border-bottom:0.5px solid var(--border); }
+  .month-start { border-left:1px solid var(--border-strong) !important; }
+  .weekend { background:var(--weekend-bg); }
+  th.weekend { opacity:0.5; }
+  .today-cell { background:var(--today-bg) !important; }
+  th.today-cell { border-bottom:2px solid var(--accent); color:var(--accent) !important; font-weight:500; opacity:1 !important; }
+
+  tr.creator-row:last-child td { border-bottom:none; }
+  tr.creator-row:hover td { background:#F2EFE9; }
+  tr.creator-row:hover td.creator-col { background:#F2EFE9; }
+  .milestone { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:4px; font-size:9px; font-family:'DM Mono',monospace; font-weight:500; cursor:default; }
+  .m-co { background:var(--c-co); color:var(--c-cot); }
+  .m-fb { background:var(--c-fb); color:var(--c-fbt); }
+  .m-cf { background:var(--c-cf); color:var(--c-cft); }
+  .m-pr { background:var(--c-pr); color:var(--c-prt); }
+  .m-e1 { background:var(--c-e1); color:var(--c-e1t); }
+  .m-e2 { background:var(--c-e2); color:var(--c-e2t); }
+  .m-ap { background:var(--c-ap); color:var(--c-apt); }
+  .m-pb { background:var(--c-pb); color:var(--c-pbt); }
+  .tooltip { display:none; position:fixed; background:var(--text-primary); color:#fff; font-size:11px; font-family:'DM Mono',monospace; padding:5px 10px; border-radius:6px; pointer-events:none; z-index:1000; white-space:nowrap; }
+  footer { margin-top:2rem; font-size:11px; font-family:'DM Mono',monospace; color:var(--text-tertiary); letter-spacing:0.05em; }
+  @media print { body{padding:1rem;} .table-wrap{overflow:visible;} table{width:100%;} }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="project-label">Project Timeline · Q2</p>
+  <h1>MINDEF × <span>UNFOLD</span></h1>
+  <p class="subtitle">12 May – 29 June 2026</p>
+  <div class="meta-row">
+    <div class="meta-item"><span class="meta-label">Creators</span><span class="meta-val">5</span></div>
+    <div class="meta-item"><span class="meta-label">Fauzi &amp; Dargo start</span><span class="meta-val">18 May</span></div>
+    <div class="meta-item"><span class="meta-label">Nancy &amp; Wendy start</span><span class="meta-val">25 May</span></div>
+    <div class="meta-item"><span class="meta-label">Siyu starts</span><span class="meta-val">27 May</span></div>
+    <div class="meta-item"><span class="meta-label">Deadline</span><span class="meta-val">29 Jun</span></div>
+  </div>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-co)"></span>Concept Outline</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-fb)"></span>Client Feedback</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-cf)"></span>Concept Final</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-pr)"></span>Production</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-e1)"></span>Edit V1</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-e2)"></span>Edit V2</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-ap)"></span>Final Approval</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-pb)"></span>Publication</div>
+  <div class="legend-item"><span class="today-swatch"></span>Today</div>
+  <div class="legend-item"><span class="wknd-swatch"></span>Weekend</div>
+</div>
+
+<div class="table-wrap">
+  <table id="gantt"></table>
+</div>
+<div id="tooltip" class="tooltip"></div>
+
+<footer>MINDEF x UNFOLD · Generated 12 May 2026 · Shaded = weekend · Orange = today</footer>
+
+<script>
+const TODAY  = new Date(2026,4,12);
+const END    = new Date(2026,5,29);
+
+const MCLASS = {
+  'Concept Outline':'m-co','Concept Outline Client Feedback':'m-fb',
+  'Concept Outline Final':'m-cf','Production':'m-pr',
+  'Edit V1':'m-e1','Edit V1 Client Feedback':'m-fb',
+  'Edit V2':'m-e2','Edit V2 Final Approval':'m-ap','Publication':'m-pb'
+};
+const ABBR = {
+  'Concept Outline':'CO','Concept Outline Client Feedback':'FB',
+  'Concept Outline Final':'CF','Production':'PR',
+  'Edit V1':'E1','Edit V1 Client Feedback':'FB',
+  'Edit V2':'E2','Edit V2 Final Approval':'✓','Publication':'PB'
+};
+
+// Per-creator schedules, all weekdays verified
+const schedules = {
+  Nancy: {
+    '2026-05-26':'Concept Outline',
+    '2026-05-28':'Concept Outline Client Feedback',
+    '2026-06-01':'Concept Outline Final',
+    '2026-06-03':'Production',
+    '2026-06-10':'Edit V1',
+    '2026-06-11':'Edit V1 Client Feedback',
+    '2026-06-17':'Edit V2',
+    '2026-06-18':'Edit V2 Final Approval',
+    '2026-06-22':'Publication'
+  },
+  Wendy: {
+    '2026-05-26':'Concept Outline',
+    '2026-05-28':'Concept Outline Client Feedback',
+    '2026-06-01':'Concept Outline Final',
+    '2026-06-03':'Production',
+    '2026-06-10':'Edit V1',
+    '2026-06-11':'Edit V1 Client Feedback',
+    '2026-06-17':'Edit V2',
+    '2026-06-18':'Edit V2 Final Approval',
+    '2026-06-23':'Publication'
+  },
+  Fauzi: {
+    '2026-05-19':'Concept Outline',
+    '2026-05-21':'Concept Outline Client Feedback',
+    '2026-05-25':'Concept Outline Final',
+    '2026-05-27':'Production',
+    '2026-06-03':'Edit V1',
+    '2026-06-04':'Edit V1 Client Feedback',
+    '2026-06-10':'Edit V2',
+    '2026-06-11':'Edit V2 Final Approval',
+    '2026-06-24':'Publication'
+  },
+  Siyu: {
+    '2026-05-28':'Concept Outline',
+    '2026-06-01':'Concept Outline Client Feedback',
+    '2026-06-03':'Concept Outline Final',
+    '2026-06-04':'Production',
+    '2026-06-11':'Edit V1',
+    '2026-06-16':'Edit V1 Client Feedback',
+    '2026-06-18':'Edit V2',
+    '2026-06-22':'Edit V2 Final Approval',
+    '2026-06-25':'Publication'
+  },
+  Dargo: {
+    '2026-05-19':'Concept Outline',
+    '2026-05-21':'Concept Outline Client Feedback',
+    '2026-05-25':'Concept Outline Final',
+    '2026-05-27':'Production',
+    '2026-06-03':'Edit V1',
+    '2026-06-04':'Edit V1 Client Feedback',
+    '2026-06-10':'Edit V2',
+    '2026-06-11':'Edit V2 Final Approval',
+    '2026-06-25':'Publication'
+  }
+};
+
+const creatorStarts = {
+  Nancy: new Date(2026,4,25),
+  Wendy: new Date(2026,4,25),
+  Fauzi: new Date(2026,4,18),
+  Siyu:  new Date(2026,4,27),
+  Dargo: new Date(2026,4,18),
+};
+
+const allDates = [];
+for(let d=new Date(TODAY); d<=END; d.setDate(d.getDate()+1)) allDates.push(new Date(d));
+
+function dkey(d){ return d.toISOString().slice(0,10); }
+function sameDay(a,b){ return a.toDateString()===b.toDateString(); }
+
+const monthMap={}, monthOrder=[];
+allDates.forEach(d=>{
+  const k=d.toLocaleString('en-US',{month:'long'});
+  if(!monthMap[k]){ monthMap[k]=[]; monthOrder.push(k); }
+  monthMap[k].push(d);
+});
+
+const table=document.getElementById('gantt');
+const tip=document.getElementById('tooltip');
+
+// Row 1: month headers
+const r1=table.insertRow();
+const h0=document.createElement('th'); h0.className='creator-col'; h0.textContent='Creator'; r1.appendChild(h0);
+let firstM=true;
+monthOrder.forEach(mn=>{
+  const th=document.createElement('th');
+  th.className='month-header'+(firstM?' month-start':'');
+  th.colSpan=monthMap[mn].length; th.textContent=mn; r1.appendChild(th); firstM=false;
+});
+
+// Row 2: day numbers
+const r2=table.insertRow();
+const h1=document.createElement('th'); h1.className='creator-col'; r2.appendChild(h1);
+let prevMonth=-1;
+allDates.forEach(d=>{
+  const th=document.createElement('th');
+  const isWknd=d.getDay()===0||d.getDay()===6;
+  const isTdy=sameDay(d,TODAY);
+  const isMonthS=d.getMonth()!==prevMonth;
+  let cls='date-cell';
+  if(isMonthS) cls+=' month-start';
+  if(isWknd)   cls+=' weekend';
+  if(isTdy)    cls+=' today-cell';
+  th.className=cls; th.textContent=d.getDate();
+  r2.appendChild(th); prevMonth=d.getMonth();
+});
+
+// Creator rows
+Object.entries(schedules).forEach(([creator, sched])=>{
+  const pstart = creatorStarts[creator];
+  const tr=document.createElement('tr'); tr.className='creator-row';
+  const tn=document.createElement('td'); tn.className='creator-col'; tn.textContent=creator; tr.appendChild(tn);
+  let pm2=-1;
+  allDates.forEach(d=>{
+    const td=document.createElement('td');
+    const isWknd=d.getDay()===0||d.getDay()===6;
+    const isTdy=sameDay(d,TODAY);
+    const isMonthS=d.getMonth()!==pm2;
+    let cls='date-cell';
+    if(isMonthS) cls+=' month-start';
+    if(isWknd)   cls+=' weekend';
+    if(isTdy)    cls+=' today-cell';
+    td.className=cls;
+
+    const ms=sched[dkey(d)];
+    if(ms){
+      const sp=document.createElement('span');
+      sp.className='milestone '+(MCLASS[ms]||'');
+      sp.textContent=ABBR[ms]||'?';
+      sp.dataset.tip=`${creator} · ${ms} · ${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}`;
+      sp.addEventListener('mouseenter',()=>{ tip.textContent=sp.dataset.tip; tip.style.display='block'; });
+      sp.addEventListener('mousemove', e=>{ tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY-32)+'px'; });
+      sp.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
+      td.appendChild(sp);
+    }
+    tr.appendChild(td); pm2=d.getMonth();
+  });
+  table.appendChild(tr);
+});
+</script>
+</body>
+</html>
