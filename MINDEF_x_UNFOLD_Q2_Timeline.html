@@ -103,13 +103,44 @@
 <footer id="footer"></footer>
 
 <script>
+// Use local date key to avoid UTC timezone offset issues (important for SGT UTC+8)
+function dkey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+function sameDay(a, b) { return a.toDateString() === b.toDateString(); }
+
 const TODAY  = new Date();
 TODAY.setHours(0,0,0,0);
-const VSTART = new Date(2026,4,12); // 12 May — fixed view start
-const END    = new Date(2026,6,1);  // 1 Jul — used as exclusive upper bound so 30 Jun is included
+
+// Build date range 12 May – 30 Jun 2026 using local dates only
+const allDates = [];
+for (let y = 2026, m = 4, day = 12; ; ) {
+  const d = new Date(y, m, day);
+  if (d.getFullYear() > 2026 || (d.getMonth() === 6 && d.getDate() > 1)) break;
+  if (d.getMonth() === 6) break; // past June
+  allDates.push(d);
+  day++;
+  const next = new Date(y, m, day);
+  if (next.getMonth() !== m) { m++; day = 1; }
+  if (m > 5) break; // past June (month 5)
+}
+// Simpler approach: explicit loop
+const allDates2 = [];
+{
+  let cur = new Date(2026, 4, 12); // 12 May 2026
+  const stop = new Date(2026, 6, 1); // 1 Jul 2026 (exclusive)
+  while (cur < stop) {
+    allDates2.push(new Date(cur.getFullYear(), cur.getMonth(), cur.getDate()));
+    cur.setDate(cur.getDate() + 1);
+  }
+}
 
 document.getElementById('footer').textContent =
-  'MINDEF x UNFOLD \u00b7 Today: ' + TODAY.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) +
+  'MINDEF x UNFOLD \u00b7 Today: ' +
+  TODAY.toLocaleDateString('en-GB', {weekday:'short',day:'numeric',month:'short',year:'numeric'}) +
   ' \u00b7 All milestone dates are due dates \u00b7 Shaded = weekend \u00b7 Orange = today';
 
 const MCLASS = {
@@ -135,6 +166,7 @@ const ABBR = {
   'Publication':                    'PB'
 };
 
+// All dates are DUE dates
 const schedules = {
   Nancy: {
     '2026-05-26': 'Concept Outline',
@@ -193,73 +225,74 @@ const schedules = {
   }
 };
 
-const allDates = [];
-for(let d=new Date(VSTART); d<=END; d.setDate(d.getDate()+1)) allDates.push(new Date(d));
+const dates = allDates2; // use the clean local-date array
 
-function dkey(d){ return d.toISOString().slice(0,10); }
-function sameDay(a,b){ return a.toDateString()===b.toDateString(); }
-
-const monthMap={}, monthOrder=[];
-allDates.forEach(d=>{
-  const k=d.toLocaleString('en-US',{month:'long'});
-  if(!monthMap[k]){ monthMap[k]=[]; monthOrder.push(k); }
+const monthMap = {}, monthOrder = [];
+dates.forEach(d => {
+  const k = d.toLocaleString('en-US', {month:'long'});
+  if (!monthMap[k]) { monthMap[k] = []; monthOrder.push(k); }
   monthMap[k].push(d);
 });
 
-const table=document.getElementById('gantt');
-const tip=document.getElementById('tooltip');
+const table = document.getElementById('gantt');
+const tip   = document.getElementById('tooltip');
 
-const r1=table.insertRow();
-const h0=document.createElement('th'); h0.className='creator-col'; h0.textContent='Creator'; r1.appendChild(h0);
-let firstM=true;
-monthOrder.forEach(mn=>{
-  const th=document.createElement('th');
-  th.className='month-header'+(firstM?' month-start':'');
-  th.colSpan=monthMap[mn].length; th.textContent=mn; r1.appendChild(th); firstM=false;
+// Row 1: month headers
+const r1 = table.insertRow();
+const h0 = document.createElement('th'); h0.className = 'creator-col'; h0.textContent = 'Creator'; r1.appendChild(h0);
+let firstM = true;
+monthOrder.forEach(mn => {
+  const th = document.createElement('th');
+  th.className = 'month-header' + (firstM ? ' month-start' : '');
+  th.colSpan = monthMap[mn].length; th.textContent = mn; r1.appendChild(th); firstM = false;
 });
 
-const r2=table.insertRow();
-const h1=document.createElement('th'); h1.className='creator-col'; r2.appendChild(h1);
-let prevMonth=-1;
-allDates.forEach(d=>{
-  const th=document.createElement('th');
-  const isWknd=d.getDay()===0||d.getDay()===6;
-  const isTdy=sameDay(d,TODAY);
-  const isMonthS=d.getMonth()!==prevMonth;
-  let cls='date-cell';
-  if(isMonthS) cls+=' month-start';
-  if(isWknd)   cls+=' weekend';
-  if(isTdy)    cls+=' today-cell';
-  th.className=cls; th.textContent=d.getDate();
-  r2.appendChild(th); prevMonth=d.getMonth();
+// Row 2: day numbers
+const r2 = table.insertRow();
+const h1 = document.createElement('th'); h1.className = 'creator-col'; r2.appendChild(h1);
+let prevMonth = -1;
+dates.forEach(d => {
+  const th = document.createElement('th');
+  const isWknd  = d.getDay() === 0 || d.getDay() === 6;
+  const isTdy   = sameDay(d, TODAY);
+  const isMonthS = d.getMonth() !== prevMonth;
+  let cls = 'date-cell';
+  if (isMonthS) cls += ' month-start';
+  if (isWknd)   cls += ' weekend';
+  if (isTdy)    cls += ' today-cell';
+  th.className = cls; th.textContent = d.getDate();
+  r2.appendChild(th); prevMonth = d.getMonth();
 });
 
-Object.entries(schedules).forEach(([creator,sched])=>{
-  const tr=document.createElement('tr'); tr.className='creator-row';
-  const tn=document.createElement('td'); tn.className='creator-col'; tn.textContent=creator; tr.appendChild(tn);
-  let pm2=-1;
-  allDates.forEach(d=>{
-    const td=document.createElement('td');
-    const isWknd=d.getDay()===0||d.getDay()===6;
-    const isTdy=sameDay(d,TODAY);
-    const isMonthS=d.getMonth()!==pm2;
-    let cls='date-cell';
-    if(isMonthS) cls+=' month-start';
-    if(isWknd)   cls+=' weekend';
-    if(isTdy)    cls+=' today-cell';
-    td.className=cls;
-    const ms=sched[dkey(d)];
-    if(ms){
-      const sp=document.createElement('span');
-      sp.className='milestone '+(MCLASS[ms]||'');
-      sp.textContent=ABBR[ms]||'?';
-      sp.dataset.tip=`${creator} \u00b7 ${ms} due \u00b7 ${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}`;
-      sp.addEventListener('mouseenter',()=>{ tip.textContent=sp.dataset.tip; tip.style.display='block'; });
-      sp.addEventListener('mousemove', e=>{ tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY-32)+'px'; });
-      sp.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
+// Creator rows
+Object.entries(schedules).forEach(([creator, sched]) => {
+  const tr = document.createElement('tr'); tr.className = 'creator-row';
+  const tn = document.createElement('td'); tn.className = 'creator-col'; tn.textContent = creator; tr.appendChild(tn);
+  let pm2 = -1;
+  dates.forEach(d => {
+    const td = document.createElement('td');
+    const isWknd   = d.getDay() === 0 || d.getDay() === 6;
+    const isTdy    = sameDay(d, TODAY);
+    const isMonthS = d.getMonth() !== pm2;
+    let cls = 'date-cell';
+    if (isMonthS) cls += ' month-start';
+    if (isWknd)   cls += ' weekend';
+    if (isTdy)    cls += ' today-cell';
+    td.className = cls;
+    const key = dkey(d);
+    const ms = sched[key];
+    if (ms) {
+      const sp = document.createElement('span');
+      sp.className = 'milestone ' + (MCLASS[ms] || '');
+      sp.textContent = ABBR[ms] || '?';
+      sp.dataset.tip = creator + ' \u00b7 ' + ms + ' due \u00b7 ' +
+        d.toLocaleDateString('en-GB', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
+      sp.addEventListener('mouseenter', () => { tip.textContent = sp.dataset.tip; tip.style.display = 'block'; });
+      sp.addEventListener('mousemove',  e  => { tip.style.left = (e.clientX+12)+'px'; tip.style.top = (e.clientY-32)+'px'; });
+      sp.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
       td.appendChild(sp);
     }
-    tr.appendChild(td); pm2=d.getMonth();
+    tr.appendChild(td); pm2 = d.getMonth();
   });
   table.appendChild(tr);
 });
