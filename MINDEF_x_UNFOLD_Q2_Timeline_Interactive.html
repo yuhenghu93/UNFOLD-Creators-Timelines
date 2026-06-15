@@ -1,9 +1,11 @@
-<html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MINDEF x UNFOLD — Q2 Creator Timeline</title>
 
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
   *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
@@ -45,8 +47,11 @@
   .controls { display:flex; align-items:center; gap:8px; margin-bottom:1rem; flex-wrap:wrap; }
   .btn { display:inline-flex; align-items:center; gap:5px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; padding:6px 12px; border-radius:6px; border:1px solid var(--border-strong); background:var(--surface); color:var(--text-secondary); cursor:pointer; transition:background 0.12s, color 0.12s; line-height:1.4; }
   .btn:hover { background:#F2EFE9; color:var(--text-primary); }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
   .btn-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
   .btn-accent:hover { background:#BF4F2A; border-color:#BF4F2A; color:#fff; }
+  .btn-accent:disabled:hover { background:var(--accent); border-color:var(--accent); }
+  .btn-success { background:#1A7F5A; color:#fff; border-color:#1A7F5A; }
   .btn-danger { background:#FEF2F2; color:#B91C1C; border-color:#FECACA; }
   .btn-danger:hover { background:#FEE2E2; }
   .controls-hint { font-size:11px; font-family:'DM Mono',monospace; color:var(--text-tertiary); margin-left:4px; }
@@ -96,7 +101,6 @@
   th.date-cell { font-size:10px; font-family:'DM Mono',monospace; color:var(--text-tertiary); text-align:center; padding:4px 1px; border-bottom:1px solid var(--border); min-width:22px; width:22px; background:var(--surface); }
   td.date-cell { padding:2px 1px; text-align:center; height:36px; border-bottom:0.5px solid var(--border); cursor:pointer; position:relative; }
 
-  /* Empty-cell hover: orange tint + "+" hint (unlocked only) */
   td.date-cell:not(.has-ms):hover { background:rgba(216,90,48,0.07) !important; }
   td.date-cell:not(.has-ms):hover::after { content:'+'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:14px; font-weight:300; color:var(--accent); opacity:0.45; pointer-events:none; }
 
@@ -139,20 +143,31 @@
   .pop-footer { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-top:1px solid var(--border); }
   .pop-footer-right { display:flex; gap:6px; }
 
+  /* ── Shared modal overlay ── */
+  .modal-overlay { position:fixed; inset:0; background:rgba(26,24,21,0.5); z-index:4000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px); }
+  .modal-box { background:var(--surface); border-radius:14px; padding:30px 26px 24px; box-shadow:0 24px 56px rgba(0,0,0,0.24); }
+
   /* ── Password modal ── */
-  .pw-overlay { position:fixed; inset:0; background:rgba(26,24,21,0.5); z-index:4000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px); }
-  .pw-modal { background:var(--surface); border-radius:14px; padding:30px 26px 24px; width:320px; box-shadow:0 24px 56px rgba(0,0,0,0.24); }
   .pw-modal-icon { font-size:24px; margin-bottom:14px; }
   .pw-modal-title { font-size:16px; font-weight:500; margin-bottom:4px; }
   .pw-modal-sub { font-size:11px; font-family:'DM Mono',monospace; color:var(--text-tertiary); margin-bottom:22px; line-height:1.5; }
   .pw-input-wrap { position:relative; margin-bottom:8px; }
   .pw-input { width:100%; font-family:'DM Sans',sans-serif; font-size:13px; padding:10px 42px 10px 13px; border:1.5px solid var(--border-strong); border-radius:8px; outline:none; background:var(--bg); color:var(--text-primary); transition:border-color 0.12s; }
+  .pw-input.plain { padding-right:13px; }
   .pw-input:focus { border-color:var(--accent); }
   .pw-input.has-error { border-color:#EF4444; }
   .pw-show-toggle { position:absolute; right:11px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:11px; font-family:'DM Mono',monospace; padding:2px 4px; letter-spacing:0.04em; }
   .pw-show-toggle:hover { color:var(--text-primary); }
-  .pw-error-msg { font-size:11px; color:#B91C1C; font-family:'DM Mono',monospace; min-height:18px; margin-bottom:16px; }
-  .pw-btns { display:flex; justify-content:flex-end; gap:8px; }
+  .modal-error { font-size:11px; color:#B91C1C; font-family:'DM Mono',monospace; min-height:18px; margin-bottom:16px; }
+  .modal-btns { display:flex; justify-content:flex-end; gap:8px; }
+
+  /* ── GitHub modal specific ── */
+  .gh-modal-box { width:360px; }
+  .gh-fields { display:flex; flex-direction:column; gap:12px; margin-bottom:8px; }
+  .gh-fields .pop-field label { font-size:10px; font-family:'DM Mono',monospace; letter-spacing:0.08em; color:var(--text-tertiary); text-transform:uppercase; }
+  .gh-note { font-size:11px; font-family:'DM Mono',monospace; color:var(--text-tertiary); line-height:1.5; margin-bottom:16px; }
+  .gh-note a { color:var(--accent); text-decoration:none; }
+  .gh-note a:hover { text-decoration:underline; }
 
   @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
   .shake { animation:shake 0.35s ease; }
@@ -166,11 +181,11 @@
     body { padding:1rem; }
     .table-wrap { overflow:visible; }
     table { width:100%; }
-    .controls, .popover, .pw-overlay { display:none !important; }
+    .controls, .popover, .modal-overlay { display:none !important; }
   }
 </style>
 </head>
-<body class="edit-unlocked">
+<body>
 
 <header>
   <p class="project-label">Project Timeline · Q2</p>
@@ -187,11 +202,9 @@
 </header>
 
 <div class="controls">
-  <!-- Always visible: lock status + unlock button -->
-  <span class="lock-badge"><span class="lock-pip on" id="lock-pip"></span><span id="lock-label">Editing</span></span>
+  <span class="lock-badge"><span class="lock-pip" id="lock-pip"></span><span id="lock-label">View only</span></span>
   <button class="btn btn-accent" id="btn-unlock">Unlock to Edit</button>
 
-  <!-- Edit-only controls (hidden when locked) -->
   <button class="btn btn-accent edit-only" id="btn-add-creator">+ Creator</button>
   <div class="add-form" id="add-form">
     <input type="text" class="add-input" id="add-input" placeholder="Creator name" maxlength="28">
@@ -199,6 +212,8 @@
     <button class="btn" id="btn-add-cancel">Cancel</button>
   </div>
   <button class="btn edit-only" id="btn-reset">↺ Reset</button>
+  <button class="btn btn-accent edit-only" id="btn-github">↑ Push to GitHub</button>
+  <button class="btn edit-only" id="btn-gh-settings" title="GitHub settings" style="padding:6px 9px;">⚙</button>
   <button class="btn edit-only" id="btn-export">↓ Export HTML</button>
   <button class="btn edit-only" id="btn-lock">Lock</button>
   <span class="controls-hint edit-only">Click a milestone to edit · Click any cell to add</span>
@@ -218,7 +233,7 @@
 </div>
 
 <div class="table-wrap">
-  <table id="gantt"><tbody><tr><th class="creator-col">Creator</th><th class="month-header month-start" colspan="20">May</th><th class="month-header" colspan="30">June</th></tr><tr><th class="creator-col"></th><th class="date-cell month-start">12</th><th class="date-cell">13</th><th class="date-cell">14</th><th class="date-cell">15</th><th class="date-cell weekend">16</th><th class="date-cell weekend">17</th><th class="date-cell">18</th><th class="date-cell">19</th><th class="date-cell">20</th><th class="date-cell">21</th><th class="date-cell">22</th><th class="date-cell weekend">23</th><th class="date-cell weekend">24</th><th class="date-cell">25</th><th class="date-cell">26</th><th class="date-cell">27</th><th class="date-cell">28</th><th class="date-cell">29</th><th class="date-cell weekend">30</th><th class="date-cell weekend">31</th><th class="date-cell month-start">1</th><th class="date-cell">2</th><th class="date-cell">3</th><th class="date-cell">4</th><th class="date-cell">5</th><th class="date-cell weekend">6</th><th class="date-cell weekend">7</th><th class="date-cell">8</th><th class="date-cell">9</th><th class="date-cell">10</th><th class="date-cell today-cell">11</th><th class="date-cell">12</th><th class="date-cell weekend">13</th><th class="date-cell weekend">14</th><th class="date-cell">15</th><th class="date-cell">16</th><th class="date-cell">17</th><th class="date-cell">18</th><th class="date-cell">19</th><th class="date-cell weekend">20</th><th class="date-cell weekend">21</th><th class="date-cell">22</th><th class="date-cell">23</th><th class="date-cell">24</th><th class="date-cell">25</th><th class="date-cell">26</th><th class="date-cell weekend">27</th><th class="date-cell weekend">28</th><th class="date-cell">29</th><th class="date-cell">30</th></tr></tbody><tr class="creator-row"><td class="creator-col"><div class="creator-name-wrap"><span>Nancy</span><button class="creator-del" title="Remove Nancy">×</button></div></td><td class="date-cell month-start" data-creator="Nancy" data-date="2026-05-12"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-13"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-14"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-15"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-05-16"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-05-17"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-18"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-19"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-20"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-21"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-22"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-05-23"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-05-24"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-25"></td><td class="date-cell has-ms" data-creator="Nancy" data-date="2026-05-26"><span class="milestone m-co" data-tip="Nancy · Concept Outline due · Tue, 26 May 2026">CO</span></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-27"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-28"></td><td class="date-cell" data-creator="Nancy" data-date="2026-05-29"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-05-30"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-05-31"></td><td class="date-cell month-start" data-creator="Nancy" data-date="2026-06-01"></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-02"></td><td class="date-cell has-ms" data-creator="Nancy" data-date="2026-06-03"><span class="milestone m-fb" data-tip="Nancy · Concept Outline Client Feedback due · Wed, 3 Jun 2026">FB</span></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-04"></td><td class="date-cell has-ms" data-creator="Nancy" data-date="2026-06-05"><span class="milestone m-cf" data-tip="Nancy · Concept Outline Final due · Fri, 5 Jun 2026">CF</span></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-06-06"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-06-07"></td><td class="date-cell has-ms" data-creator="Nancy" data-date="2026-06-08"><span class="milestone m-pr" data-tip="Nancy · Production due · Mon, 8 Jun 2026">PR</span></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-09"></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-10"></td><td class="date-cell today-cell has-ms" data-creator="Nancy" data-date="2026-06-11"><span class="milestone m-e1" data-tip="Nancy · Edit V1 due · Thu, 11 Jun 2026">E1</span></td><td class="date-cell has-ms" data-creator="Nancy" data-date="2026-06-12"><span class="milestone m-fb" data-tip="Nancy · Edit V1 Client Feedback due · Fri, 12 Jun 2026">FB</span></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-06-13"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-06-14"></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-15"></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-16"></td><td class="date-cell has-ms" data-creator="Nancy" data-date="2026-06-17"><span class="milestone m-e2" data-tip="Nancy · Edit V2 due · Wed, 17 Jun 2026">E2</span></td><td class="date-cell has-ms" data-creator="Nancy" data-date="2026-06-18"><span class="milestone m-ap" data-tip="Nancy · Edit V2 Final Approval due · Thu, 18 Jun 2026">✓</span></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-19"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-06-20"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-06-21"></td><td class="date-cell has-ms" data-creator="Nancy" data-date="2026-06-22"><span class="milestone m-pb" data-tip="Nancy · Publication due · Mon, 22 Jun 2026">PB</span></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-23"></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-24"></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-25"></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-26"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-06-27"></td><td class="date-cell weekend" data-creator="Nancy" data-date="2026-06-28"></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-29"></td><td class="date-cell" data-creator="Nancy" data-date="2026-06-30"></td></tr><tr class="creator-row"><td class="creator-col"><div class="creator-name-wrap"><span>Wendy</span><button class="creator-del" title="Remove Wendy">×</button></div></td><td class="date-cell month-start" data-creator="Wendy" data-date="2026-05-12"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-13"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-14"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-15"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-05-16"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-05-17"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-18"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-19"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-20"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-21"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-22"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-05-23"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-05-24"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-25"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-26"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-27"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-28"></td><td class="date-cell" data-creator="Wendy" data-date="2026-05-29"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-05-30"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-05-31"></td><td class="date-cell month-start" data-creator="Wendy" data-date="2026-06-01"></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-02"></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-03"></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-04"></td><td class="date-cell has-ms" data-creator="Wendy" data-date="2026-06-05"><span class="milestone m-co" data-tip="Wendy · Concept Outline due · Fri, 5 Jun 2026">CO</span></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-06-06"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-06-07"></td><td class="date-cell has-ms" data-creator="Wendy" data-date="2026-06-08"><span class="milestone m-fb" data-tip="Wendy · Concept Outline Client Feedback due · Mon, 8 Jun 2026">FB</span></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-09"></td><td class="date-cell has-ms" data-creator="Wendy" data-date="2026-06-10"><span class="milestone m-cf" data-tip="Wendy · Concept Outline Final due · Wed, 10 Jun 2026">CF</span></td><td class="date-cell today-cell" data-creator="Wendy" data-date="2026-06-11"></td><td class="date-cell has-ms" data-creator="Wendy" data-date="2026-06-12"><span class="milestone m-pr" data-tip="Wendy · Production due · Fri, 12 Jun 2026">PR</span></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-06-13"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-06-14"></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-15"></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-16"></td><td class="date-cell has-ms" data-creator="Wendy" data-date="2026-06-17"><span class="milestone m-e1" data-tip="Wendy · Edit V1 due · Wed, 17 Jun 2026">E1</span></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-18"></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-19"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-06-20"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-06-21"></td><td class="date-cell has-ms" data-creator="Wendy" data-date="2026-06-22"><span class="milestone m-fb" data-tip="Wendy · Edit V1 Client Feedback due · Mon, 22 Jun 2026">FB</span></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-23"></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-24"></td><td class="date-cell has-ms" data-creator="Wendy" data-date="2026-06-25"><span class="milestone m-e2" data-tip="Wendy · Edit V2 due · Thu, 25 Jun 2026">E2</span></td><td class="date-cell" data-creator="Wendy" data-date="2026-06-26"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-06-27"></td><td class="date-cell weekend" data-creator="Wendy" data-date="2026-06-28"></td><td class="date-cell has-ms" data-creator="Wendy" data-date="2026-06-29"><span class="milestone m-ap" data-tip="Wendy · Edit V2 Final Approval due · Mon, 29 Jun 2026">✓</span></td><td class="date-cell has-ms" data-creator="Wendy" data-date="2026-06-30"><span class="milestone m-pb" data-tip="Wendy · Publication due · Tue, 30 Jun 2026">PB</span></td></tr><tr class="creator-row"><td class="creator-col"><div class="creator-name-wrap"><span>Fauzi</span><button class="creator-del" title="Remove Fauzi">×</button></div></td><td class="date-cell month-start" data-creator="Fauzi" data-date="2026-05-12"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-05-13"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-05-14"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-05-15"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-05-16"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-05-17"></td><td class="date-cell has-ms" data-creator="Fauzi" data-date="2026-05-18"><span class="milestone m-co" data-tip="Fauzi · Concept Outline due · Mon, 18 May 2026">CO</span></td><td class="date-cell" data-creator="Fauzi" data-date="2026-05-19"></td><td class="date-cell has-ms" data-creator="Fauzi" data-date="2026-05-20"><span class="milestone m-fb" data-tip="Fauzi · Concept Outline Client Feedback due · Wed, 20 May 2026">FB</span></td><td class="date-cell" data-creator="Fauzi" data-date="2026-05-21"></td><td class="date-cell has-ms" data-creator="Fauzi" data-date="2026-05-22"><span class="milestone m-cf" data-tip="Fauzi · Concept Outline Final due · Fri, 22 May 2026">CF</span></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-05-23"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-05-24"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-05-25"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-05-26"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-05-27"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-05-28"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-05-29"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-05-30"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-05-31"></td><td class="date-cell month-start" data-creator="Fauzi" data-date="2026-06-01"></td><td class="date-cell has-ms" data-creator="Fauzi" data-date="2026-06-02"><span class="milestone m-pr" data-tip="Fauzi · Production due · Tue, 2 Jun 2026">PR</span></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-03"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-04"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-05"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-06-06"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-06-07"></td><td class="date-cell has-ms" data-creator="Fauzi" data-date="2026-06-08"><span class="milestone m-e1" data-tip="Fauzi · Edit V1 due · Mon, 8 Jun 2026">E1</span></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-09"></td><td class="date-cell has-ms" data-creator="Fauzi" data-date="2026-06-10"><span class="milestone m-fb" data-tip="Fauzi · Edit V1 Client Feedback due · Wed, 10 Jun 2026">FB</span></td><td class="date-cell today-cell" data-creator="Fauzi" data-date="2026-06-11"></td><td class="date-cell has-ms" data-creator="Fauzi" data-date="2026-06-12"><span class="milestone m-e2" data-tip="Fauzi · Edit V2 due · Fri, 12 Jun 2026">E2</span></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-06-13"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-06-14"></td><td class="date-cell has-ms" data-creator="Fauzi" data-date="2026-06-15"><span class="milestone m-ap" data-tip="Fauzi · Edit V2 Final Approval due · Mon, 15 Jun 2026">✓</span></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-16"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-17"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-18"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-19"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-06-20"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-06-21"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-22"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-23"></td><td class="date-cell has-ms" data-creator="Fauzi" data-date="2026-06-24"><span class="milestone m-pb" data-tip="Fauzi · Publication due · Wed, 24 Jun 2026">PB</span></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-25"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-26"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-06-27"></td><td class="date-cell weekend" data-creator="Fauzi" data-date="2026-06-28"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-29"></td><td class="date-cell" data-creator="Fauzi" data-date="2026-06-30"></td></tr><tr class="creator-row"><td class="creator-col"><div class="creator-name-wrap"><span>Siyu</span><button class="creator-del" title="Remove Siyu">×</button></div></td><td class="date-cell month-start" data-creator="Siyu" data-date="2026-05-12"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-13"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-14"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-15"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-05-16"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-05-17"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-18"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-19"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-20"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-21"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-22"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-05-23"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-05-24"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-25"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-26"></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-27"></td><td class="date-cell has-ms" data-creator="Siyu" data-date="2026-05-28"><span class="milestone m-co" data-tip="Siyu · Concept Outline due · Thu, 28 May 2026">CO</span></td><td class="date-cell" data-creator="Siyu" data-date="2026-05-29"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-05-30"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-05-31"></td><td class="date-cell month-start" data-creator="Siyu" data-date="2026-06-01"></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-02"></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-03"></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-04"></td><td class="date-cell has-ms" data-creator="Siyu" data-date="2026-06-05"><span class="milestone m-fb" data-tip="Siyu · Concept Outline Client Feedback due · Fri, 5 Jun 2026">FB</span></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-06-06"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-06-07"></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-08"></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-09"></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-10"></td><td class="date-cell today-cell has-ms" data-creator="Siyu" data-date="2026-06-11"><span class="milestone m-cf" data-tip="Siyu · Concept Outline Final due · Thu, 11 Jun 2026">CF</span></td><td class="date-cell has-ms" data-creator="Siyu" data-date="2026-06-12"><span class="milestone m-pr" data-tip="Siyu · Production due · Fri, 12 Jun 2026">PR</span></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-06-13"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-06-14"></td><td class="date-cell has-ms" data-creator="Siyu" data-date="2026-06-15"><span class="milestone m-e1" data-tip="Siyu · Edit V1 due · Mon, 15 Jun 2026">E1</span></td><td class="date-cell has-ms" data-creator="Siyu" data-date="2026-06-16"><span class="milestone m-fb" data-tip="Siyu · Edit V1 Client Feedback due · Tue, 16 Jun 2026">FB</span></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-17"></td><td class="date-cell has-ms" data-creator="Siyu" data-date="2026-06-18"><span class="milestone m-e2" data-tip="Siyu · Edit V2 due · Thu, 18 Jun 2026">E2</span></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-19"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-06-20"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-06-21"></td><td class="date-cell has-ms" data-creator="Siyu" data-date="2026-06-22"><span class="milestone m-ap" data-tip="Siyu · Edit V2 Final Approval due · Mon, 22 Jun 2026">✓</span></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-23"></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-24"></td><td class="date-cell has-ms" data-creator="Siyu" data-date="2026-06-25"><span class="milestone m-pb" data-tip="Siyu · Publication due · Thu, 25 Jun 2026">PB</span></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-26"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-06-27"></td><td class="date-cell weekend" data-creator="Siyu" data-date="2026-06-28"></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-29"></td><td class="date-cell" data-creator="Siyu" data-date="2026-06-30"></td></tr><tr class="creator-row"><td class="creator-col"><div class="creator-name-wrap"><span>Dargo</span><button class="creator-del" title="Remove Dargo">×</button></div></td><td class="date-cell month-start" data-creator="Dargo" data-date="2026-05-12"></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-13"></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-14"></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-15"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-05-16"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-05-17"></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-18"></td><td class="date-cell has-ms" data-creator="Dargo" data-date="2026-05-19"><span class="milestone m-co" data-tip="Dargo · Concept Outline due · Tue, 19 May 2026">CO</span></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-20"></td><td class="date-cell has-ms" data-creator="Dargo" data-date="2026-05-21"><span class="milestone m-fb" data-tip="Dargo · Concept Outline Client Feedback due · Thu, 21 May 2026">FB</span></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-22"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-05-23"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-05-24"></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-25"></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-26"></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-27"></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-28"></td><td class="date-cell" data-creator="Dargo" data-date="2026-05-29"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-05-30"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-05-31"></td><td class="date-cell month-start" data-creator="Dargo" data-date="2026-06-01"></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-02"></td><td class="date-cell has-ms" data-creator="Dargo" data-date="2026-06-03"><span class="milestone m-cf" data-tip="Dargo · Concept Outline Final due · Wed, 3 Jun 2026">CF</span></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-04"></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-05"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-06-06"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-06-07"></td><td class="date-cell has-ms" data-creator="Dargo" data-date="2026-06-08"><span class="milestone m-pr" data-tip="Dargo · Production due · Mon, 8 Jun 2026">PR</span></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-09"></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-10"></td><td class="date-cell today-cell" data-creator="Dargo" data-date="2026-06-11"></td><td class="date-cell has-ms" data-creator="Dargo" data-date="2026-06-12"><span class="milestone m-e1" data-tip="Dargo · Edit V1 due · Fri, 12 Jun 2026">E1</span></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-06-13"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-06-14"></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-15"></td><td class="date-cell has-ms" data-creator="Dargo" data-date="2026-06-16"><span class="milestone m-fb" data-tip="Dargo · Edit V1 Client Feedback due · Tue, 16 Jun 2026">FB</span></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-17"></td><td class="date-cell has-ms" data-creator="Dargo" data-date="2026-06-18"><span class="milestone m-e2" data-tip="Dargo · Edit V2 due · Thu, 18 Jun 2026">E2</span></td><td class="date-cell has-ms" data-creator="Dargo" data-date="2026-06-19"><span class="milestone m-ap" data-tip="Dargo · Edit V2 Final Approval due · Fri, 19 Jun 2026">✓</span></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-06-20"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-06-21"></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-22"></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-23"></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-24"></td><td class="date-cell has-ms" data-creator="Dargo" data-date="2026-06-25"><span class="milestone m-pb" data-tip="Dargo · Publication due · Thu, 25 Jun 2026">PB</span></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-26"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-06-27"></td><td class="date-cell weekend" data-creator="Dargo" data-date="2026-06-28"></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-29"></td><td class="date-cell" data-creator="Dargo" data-date="2026-06-30"></td></tr></table>
+  <table id="gantt"></table>
 </div>
 
 <!-- Edit / Add popover -->
@@ -234,7 +249,7 @@
     </div>
     <div class="pop-field">
       <label>Milestone</label>
-      <select class="pop-select" id="pop-type"><option value="Concept Outline">Concept Outline</option><option value="Concept Outline Client Feedback">Concept Outline Client Feedback</option><option value="Concept Outline Final">Concept Outline Final</option><option value="Production">Production</option><option value="Edit V1">Edit V1</option><option value="Edit V1 Client Feedback">Edit V1 Client Feedback</option><option value="Edit V2">Edit V2</option><option value="Edit V2 Final Approval">Edit V2 Final Approval</option><option value="Publication">Publication</option></select>
+      <select class="pop-select" id="pop-type"></select>
     </div>
     <div class="pop-field">
       <label>Date</label>
@@ -252,25 +267,60 @@
 </div>
 
 <!-- Password modal -->
-<div id="pw-overlay" class="pw-overlay" style="display: none;">
-  <div class="pw-modal">
-    <div class="pw-modal-icon">🔒</div>
+<div id="pw-overlay" class="modal-overlay" style="display:none">
+  <div class="modal-box" style="width:320px">
+    <div class="pw-modal-icon">&#128274;</div>
     <p class="pw-modal-title">Edit mode</p>
     <p class="pw-modal-sub">Enter the password to unlock editing.<br>Viewers can always see the timeline without a password.</p>
     <div class="pw-input-wrap">
       <input type="password" class="pw-input" id="pw-input" placeholder="Password" autocomplete="current-password">
       <button class="pw-show-toggle" id="pw-show-toggle" tabindex="-1">show</button>
     </div>
-    <p class="pw-error-msg" id="pw-error-msg"></p>
-    <div class="pw-btns">
+    <p class="modal-error" id="pw-error-msg"></p>
+    <div class="modal-btns">
       <button class="btn" id="pw-cancel">Cancel</button>
       <button class="btn btn-accent" id="pw-submit">Unlock</button>
     </div>
   </div>
 </div>
 
-<div id="tooltip" class="tooltip" style="display: none; left: 633px; top: 334px;">Nancy · Concept Outline due · Tue, 26 May 2026</div>
-<footer id="footer">MINDEF x UNFOLD · Today: Thu, 11 Jun 2026 · All milestone dates are due dates · Shaded = weekend · Orange = today · Edits auto-saved locally</footer>
+<!-- GitHub settings modal -->
+<div id="gh-overlay" class="modal-overlay" style="display:none">
+  <div class="modal-box gh-modal-box">
+    <p class="pw-modal-title">GitHub Settings</p>
+    <p class="pw-modal-sub">Connect your repo so edits push directly as commits and trigger a Vercel redeploy.</p>
+    <div class="gh-fields">
+      <div class="pop-field">
+        <label>Personal Access Token</label>
+        <div class="pw-input-wrap" style="margin-bottom:0">
+          <input type="password" class="pw-input" id="gh-pat" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+          <button class="pw-show-toggle" id="gh-pat-toggle" tabindex="-1">show</button>
+        </div>
+      </div>
+      <div class="pop-field">
+        <label>Repository (owner/repo)</label>
+        <input type="text" class="pw-input plain" id="gh-repo" placeholder="yuhenghu93/UNFOLD-Creators-Timelines" autocomplete="off">
+      </div>
+      <div class="pop-field">
+        <label>File path in repo</label>
+        <input type="text" class="pw-input plain" id="gh-filepath" placeholder="MINDEF_x_UNFOLD_Q2_Timeline.html" autocomplete="off">
+      </div>
+      <div class="pop-field">
+        <label>Branch</label>
+        <input type="text" class="pw-input plain" id="gh-branch" placeholder="main" autocomplete="off">
+      </div>
+    </div>
+    <p class="gh-note">Need a PAT? Go to GitHub → Settings → Developer settings → Personal access tokens → Fine-grained → set <strong>Contents: Read &amp; write</strong> on this repo only.</p>
+    <p class="modal-error" id="gh-error"></p>
+    <div class="modal-btns">
+      <button class="btn" id="gh-cancel">Cancel</button>
+      <button class="btn btn-accent" id="gh-save">Save &amp; Push</button>
+    </div>
+  </div>
+</div>
+
+<div id="tooltip" class="tooltip"></div>
+<footer id="footer"></footer>
 
 <script>
 // ============================================================
@@ -286,70 +336,50 @@ function sameDay(a, b) { return a.toDateString() === b.toDateString(); }
 // ============================================================
 // PASSWORD PROTECTION
 // ============================================================
-// SHA-256 hash of the edit password. To change the password:
-//   1. Run in terminal: echo -n "yournewpassword" | shasum -a 256
-//   2. Replace the hash string below with the result.
+// SHA-256 hash of the edit password.
+// To change: run  echo -n "newpassword" | shasum -a 256  and replace the hash below.
 const EDIT_PASSWORD_HASH = 'b04bfeaf798aea9e3a75ad5a5c7fcde97b06f2a574a85d7007d2d9dcd18c58da';
-
 let editUnlocked = false;
 
 async function verifyPassword(input) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
-  const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-  return hex === EDIT_PASSWORD_HASH;
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('') === EDIT_PASSWORD_HASH;
 }
-
 function unlockEditing() {
   editUnlocked = true;
   document.body.classList.add('edit-unlocked');
   document.getElementById('lock-label').textContent = 'Editing';
   document.getElementById('lock-pip').classList.add('on');
 }
-
 function lockEditing() {
   editUnlocked = false;
   document.body.classList.remove('edit-unlocked');
   document.getElementById('lock-label').textContent = 'View only';
   document.getElementById('lock-pip').classList.remove('on');
-  closePop();
-  cancelAdd();
+  closePop(); cancelAdd();
 }
 
-// Password modal
-const pwOverlay   = document.getElementById('pw-overlay');
-const pwInput     = document.getElementById('pw-input');
-const pwErrorMsg  = document.getElementById('pw-error-msg');
+const pwOverlay    = document.getElementById('pw-overlay');
+const pwInput      = document.getElementById('pw-input');
+const pwErrorMsg   = document.getElementById('pw-error-msg');
 const pwShowToggle = document.getElementById('pw-show-toggle');
 
 function showPwModal() {
-  pwInput.value = '';
-  pwInput.type  = 'password';
-  pwShowToggle.textContent = 'show';
-  pwInput.classList.remove('has-error');
-  pwErrorMsg.textContent = '';
-  pwOverlay.style.display = 'flex';
-  setTimeout(() => pwInput.focus(), 50);
+  pwInput.value=''; pwInput.type='password'; pwShowToggle.textContent='show';
+  pwInput.classList.remove('has-error'); pwErrorMsg.textContent='';
+  pwOverlay.style.display='flex'; setTimeout(()=>pwInput.focus(),50);
 }
-
-function hidePwModal() {
-  pwOverlay.style.display = 'none';
-}
+function hidePwModal() { pwOverlay.style.display='none'; }
 
 async function submitPassword() {
-  const val = pwInput.value;
-  if (!val) return;
+  const val = pwInput.value; if (!val) return;
   const ok = await verifyPassword(val);
-  if (ok) {
-    hidePwModal();
-    unlockEditing();
-  } else {
+  if (ok) { hidePwModal(); unlockEditing(); }
+  else {
     pwInput.classList.add('has-error');
-    pwInput.classList.remove('shake');
-    void pwInput.offsetWidth; // restart animation
-    pwInput.classList.add('shake');
-    pwErrorMsg.textContent = 'Incorrect password — try again.';
-    pwInput.value = '';
-    pwInput.focus();
+    pwInput.classList.remove('shake'); void pwInput.offsetWidth; pwInput.classList.add('shake');
+    pwErrorMsg.textContent='Incorrect password — try again.';
+    pwInput.value=''; pwInput.focus();
   }
 }
 
@@ -357,47 +387,34 @@ document.getElementById('btn-unlock').addEventListener('click', showPwModal);
 document.getElementById('btn-lock').addEventListener('click', lockEditing);
 document.getElementById('pw-submit').addEventListener('click', submitPassword);
 document.getElementById('pw-cancel').addEventListener('click', hidePwModal);
-pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitPassword(); });
-pwInput.addEventListener('input', () => { pwInput.classList.remove('has-error'); pwErrorMsg.textContent=''; });
-pwShowToggle.addEventListener('click', () => {
-  const isHidden = pwInput.type === 'password';
-  pwInput.type = isHidden ? 'text' : 'password';
-  pwShowToggle.textContent = isHidden ? 'hide' : 'show';
+pwInput.addEventListener('keydown', e=>{ if(e.key==='Enter') submitPassword(); });
+pwInput.addEventListener('input', ()=>{ pwInput.classList.remove('has-error'); pwErrorMsg.textContent=''; });
+pwShowToggle.addEventListener('click', ()=>{
+  const hide = pwInput.type==='password';
+  pwInput.type = hide?'text':'password'; pwShowToggle.textContent = hide?'hide':'show';
 });
 
 // ============================================================
 // DATE RANGE
 // ============================================================
 const TODAY  = new Date(); TODAY.setHours(0,0,0,0);
-const VSTART = new Date(2026, 4, 12);
-const STOP   = new Date(2026, 6,  1);
+const VSTART = new Date(2026,4,12);
+const STOP   = new Date(2026,6,1);
 const dates  = [];
-{ let c = new Date(VSTART); while (c < STOP) { dates.push(new Date(c)); c.setDate(c.getDate()+1); } }
+{ let c=new Date(VSTART); while(c<STOP){dates.push(new Date(c));c.setDate(c.getDate()+1);} }
 
 // ============================================================
 // MILESTONE TYPES
 // ============================================================
 const MCLASS = {
-  'Concept Outline':                'm-co',
-  'Concept Outline Client Feedback':'m-fb',
-  'Concept Outline Final':          'm-cf',
-  'Production':                     'm-pr',
-  'Edit V1':                        'm-e1',
-  'Edit V1 Client Feedback':        'm-fb',
-  'Edit V2':                        'm-e2',
-  'Edit V2 Final Approval':         'm-ap',
-  'Publication':                    'm-pb'
+  'Concept Outline':'m-co','Concept Outline Client Feedback':'m-fb',
+  'Concept Outline Final':'m-cf','Production':'m-pr','Edit V1':'m-e1',
+  'Edit V1 Client Feedback':'m-fb','Edit V2':'m-e2','Edit V2 Final Approval':'m-ap','Publication':'m-pb'
 };
 const ABBR = {
-  'Concept Outline':                'CO',
-  'Concept Outline Client Feedback':'FB',
-  'Concept Outline Final':          'CF',
-  'Production':                     'PR',
-  'Edit V1':                        'E1',
-  'Edit V1 Client Feedback':        'FB',
-  'Edit V2':                        'E2',
-  'Edit V2 Final Approval':         '✓',
-  'Publication':                    'PB'
+  'Concept Outline':'CO','Concept Outline Client Feedback':'FB','Concept Outline Final':'CF',
+  'Production':'PR','Edit V1':'E1','Edit V1 Client Feedback':'FB','Edit V2':'E2',
+  'Edit V2 Final Approval':'✓','Publication':'PB'
 };
 const MS_NAMES = Object.keys(MCLASS);
 
@@ -438,64 +455,39 @@ const ORIGINAL_SCHEDULES = {
 };
 
 // ============================================================
-// LIVE SCHEDULES — updated by export sentinel
+// LIVE SCHEDULES — updated by export/push sentinel
 // ============================================================
 //__SCHEDULES_START__
 let schedules = {
   "Nancy": {
-    "2026-05-26": "Concept Outline",
-    "2026-06-17": "Edit V2",
-    "2026-06-18": "Edit V2 Final Approval",
-    "2026-06-22": "Publication",
-    "2026-06-05": "Concept Outline Final",
-    "2026-06-08": "Production",
-    "2026-06-12": "Edit V1 Client Feedback",
-    "2026-06-11": "Edit V1",
-    "2026-06-03": "Concept Outline Client Feedback"
+    "2026-05-26":"Concept Outline","2026-06-03":"Concept Outline Client Feedback",
+    "2026-06-05":"Concept Outline Final","2026-06-08":"Production",
+    "2026-06-11":"Edit V1","2026-06-12":"Edit V1 Client Feedback",
+    "2026-06-17":"Edit V2","2026-06-18":"Edit V2 Final Approval","2026-06-22":"Publication"
   },
   "Wendy": {
-    "2026-06-17": "Edit V1",
-    "2026-06-22": "Edit V1 Client Feedback",
-    "2026-06-25": "Edit V2",
-    "2026-06-29": "Edit V2 Final Approval",
-    "2026-06-30": "Publication",
-    "2026-06-05": "Concept Outline",
-    "2026-06-12": "Production",
-    "2026-06-08": "Concept Outline Client Feedback",
-    "2026-06-10": "Concept Outline Final"
+    "2026-06-05":"Concept Outline","2026-06-08":"Concept Outline Client Feedback",
+    "2026-06-10":"Concept Outline Final","2026-06-12":"Production",
+    "2026-06-17":"Edit V1","2026-06-22":"Edit V1 Client Feedback",
+    "2026-06-25":"Edit V2","2026-06-29":"Edit V2 Final Approval","2026-06-30":"Publication"
   },
   "Fauzi": {
-    "2026-05-18": "Concept Outline",
-    "2026-05-20": "Concept Outline Client Feedback",
-    "2026-05-22": "Concept Outline Final",
-    "2026-06-02": "Production",
-    "2026-06-08": "Edit V1",
-    "2026-06-10": "Edit V1 Client Feedback",
-    "2026-06-12": "Edit V2",
-    "2026-06-15": "Edit V2 Final Approval",
-    "2026-06-24": "Publication"
+    "2026-05-18":"Concept Outline","2026-05-20":"Concept Outline Client Feedback",
+    "2026-05-22":"Concept Outline Final","2026-06-02":"Production",
+    "2026-06-08":"Edit V1","2026-06-10":"Edit V1 Client Feedback",
+    "2026-06-12":"Edit V2","2026-06-15":"Edit V2 Final Approval","2026-06-24":"Publication"
   },
   "Siyu": {
-    "2026-05-28": "Concept Outline",
-    "2026-06-16": "Edit V1 Client Feedback",
-    "2026-06-18": "Edit V2",
-    "2026-06-22": "Edit V2 Final Approval",
-    "2026-06-25": "Publication",
-    "2026-06-05": "Concept Outline Client Feedback",
-    "2026-06-15": "Edit V1",
-    "2026-06-12": "Production",
-    "2026-06-11": "Concept Outline Final"
+    "2026-05-28":"Concept Outline","2026-06-05":"Concept Outline Client Feedback",
+    "2026-06-11":"Concept Outline Final","2026-06-12":"Production",
+    "2026-06-15":"Edit V1","2026-06-16":"Edit V1 Client Feedback",
+    "2026-06-18":"Edit V2","2026-06-22":"Edit V2 Final Approval","2026-06-25":"Publication"
   },
   "Dargo": {
-    "2026-05-19": "Concept Outline",
-    "2026-05-21": "Concept Outline Client Feedback",
-    "2026-06-25": "Publication",
-    "2026-06-19": "Edit V2 Final Approval",
-    "2026-06-18": "Edit V2",
-    "2026-06-16": "Edit V1 Client Feedback",
-    "2026-06-12": "Edit V1",
-    "2026-06-08": "Production",
-    "2026-06-03": "Concept Outline Final"
+    "2026-05-19":"Concept Outline","2026-05-21":"Concept Outline Client Feedback",
+    "2026-06-03":"Concept Outline Final","2026-06-08":"Production",
+    "2026-06-12":"Edit V1","2026-06-16":"Edit V1 Client Feedback",
+    "2026-06-18":"Edit V2","2026-06-19":"Edit V2 Final Approval","2026-06-25":"Publication"
   }
 };
 //__SCHEDULES_END__
@@ -511,6 +503,21 @@ function persist() { localStorage.setItem(LS_KEY, JSON.stringify(schedules)); }
 })();
 
 // ============================================================
+// GENERATE UPDATED HTML (shared by Export and Push)
+// ============================================================
+function getUpdatedHTML() {
+  let html = document.documentElement.outerHTML;
+  // Strip edit-unlocked from body so the exported file always opens locked
+  html = html.replace(/(<body\b[^>]*)\s+class="edit-unlocked"/g, '$1');
+  html = html.replace(/class="edit-unlocked"/g, 'class=""');
+  // Update schedules sentinel
+  const S='//__SCHEDULES_START__', E='//__SCHEDULES_END__';
+  const si=html.indexOf(S), ei=html.indexOf(E)+E.length;
+  if (si===-1||ei<E.length) return null;
+  return html.slice(0,si)+S+'\nlet schedules = '+JSON.stringify(schedules,null,2)+';\n'+E+html.slice(ei);
+}
+
+// ============================================================
 // TABLE RENDERING
 // ============================================================
 const table = document.getElementById('gantt');
@@ -518,98 +525,81 @@ const tip   = document.getElementById('tooltip');
 
 const monthMap = {}, monthOrder = [];
 dates.forEach(d => {
-  const k = d.toLocaleString('en-US', {month:'long'});
-  if (!monthMap[k]) { monthMap[k] = []; monthOrder.push(k); }
+  const k = d.toLocaleString('en-US',{month:'long'});
+  if (!monthMap[k]) { monthMap[k]=[]; monthOrder.push(k); }
   monthMap[k].push(d);
 });
 
 function renderTable() {
   table.innerHTML = '';
-
-  // Month header row
   const r1 = table.insertRow();
   const h0 = document.createElement('th');
-  h0.className = 'creator-col'; h0.textContent = 'Creator'; r1.appendChild(h0);
-  monthOrder.forEach((mn, i) => {
-    const th = document.createElement('th');
-    th.className = 'month-header' + (i === 0 ? ' month-start' : '');
-    th.colSpan = monthMap[mn].length;
-    th.textContent = mn;
-    r1.appendChild(th);
+  h0.className='creator-col'; h0.textContent='Creator'; r1.appendChild(h0);
+  monthOrder.forEach((mn,i)=>{
+    const th=document.createElement('th');
+    th.className='month-header'+(i===0?' month-start':'');
+    th.colSpan=monthMap[mn].length; th.textContent=mn; r1.appendChild(th);
   });
 
-  // Day numbers row
   const r2 = table.insertRow();
-  r2.appendChild((() => { const h = document.createElement('th'); h.className='creator-col'; return h; })());
-  let prevM = -1;
-  dates.forEach(d => {
-    const th = document.createElement('th');
-    const isWknd=d.getDay()===0||d.getDay()===6, isTdy=sameDay(d,TODAY), isNew=d.getMonth()!==prevM;
-    th.className = 'date-cell'+(isNew?' month-start':'')+(isWknd?' weekend':'')+(isTdy?' today-cell':'');
-    th.textContent = d.getDate();
-    r2.appendChild(th);
-    prevM = d.getMonth();
+  r2.appendChild((()=>{const h=document.createElement('th');h.className='creator-col';return h;})());
+  let prevM=-1;
+  dates.forEach(d=>{
+    const th=document.createElement('th');
+    const isW=d.getDay()===0||d.getDay()===6,isTd=sameDay(d,TODAY),isN=d.getMonth()!==prevM;
+    th.className='date-cell'+(isN?' month-start':'')+(isW?' weekend':'')+(isTd?' today-cell':'');
+    th.textContent=d.getDate(); r2.appendChild(th); prevM=d.getMonth();
   });
 
-  // Creator rows
-  Object.entries(schedules).forEach(([creator, sched]) => {
-    const tr = document.createElement('tr'); tr.className = 'creator-row';
-
-    // Sticky name cell
-    const tn = document.createElement('td'); tn.className = 'creator-col';
-    const wrap = document.createElement('div'); wrap.className = 'creator-name-wrap';
-    const nameSpan = document.createElement('span'); nameSpan.textContent = creator;
-    const delBtn = document.createElement('button'); delBtn.className = 'creator-del';
-    delBtn.textContent = '×'; delBtn.title = 'Remove '+creator;
-    delBtn.addEventListener('click', e => {
-      if (!editUnlocked) return;
-      e.stopPropagation();
-      if (confirm('Remove '+creator+' and all their milestones?')) {
+  Object.entries(schedules).forEach(([creator,sched])=>{
+    const tr=document.createElement('tr'); tr.className='creator-row';
+    const tn=document.createElement('td'); tn.className='creator-col';
+    const wrap=document.createElement('div'); wrap.className='creator-name-wrap';
+    const ns=document.createElement('span'); ns.textContent=creator;
+    const db=document.createElement('button'); db.className='creator-del';
+    db.textContent='×'; db.title='Remove '+creator;
+    db.addEventListener('click',e=>{
+      if(!editUnlocked) return; e.stopPropagation();
+      if(confirm('Remove '+creator+' and all their milestones?')){
         delete schedules[creator]; persist(); renderTable(); updateCount();
       }
     });
-    wrap.appendChild(nameSpan); wrap.appendChild(delBtn); tn.appendChild(wrap); tr.appendChild(tn);
+    wrap.appendChild(ns); wrap.appendChild(db); tn.appendChild(wrap); tr.appendChild(tn);
 
-    // Day cells
-    let pm = -1;
-    dates.forEach(d => {
-      const td = document.createElement('td');
-      const isWknd=d.getDay()===0||d.getDay()===6, isTdy=sameDay(d,TODAY), isNew=d.getMonth()!==pm;
-      const ms = sched[dkey(d)];
-      td.className = 'date-cell'+(isNew?' month-start':'')+(isWknd?' weekend':'')+(isTdy?' today-cell':'')+(ms?' has-ms':'');
-      td.dataset.creator = creator; td.dataset.date = dkey(d);
+    let pm=-1;
+    dates.forEach(d=>{
+      const td=document.createElement('td');
+      const isW=d.getDay()===0||d.getDay()===6,isTd=sameDay(d,TODAY),isN=d.getMonth()!==pm;
+      const ms=sched[dkey(d)];
+      td.className='date-cell'+(isN?' month-start':'')+(isW?' weekend':'')+(isTd?' today-cell':'')+(ms?' has-ms':'');
+      td.dataset.creator=creator; td.dataset.date=dkey(d);
 
       if (ms) {
-        const sp = document.createElement('span');
-        sp.className   = 'milestone '+(MCLASS[ms]||'');
-        sp.textContent = ABBR[ms]||'?';
-        sp.dataset.tip = creator+' · '+ms+' due · '+d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-        sp.addEventListener('mouseenter', ()=>{ tip.textContent=sp.dataset.tip; tip.style.display='block'; });
-        sp.addEventListener('mousemove',  e=>{ tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY-32)+'px'; });
-        sp.addEventListener('mouseleave', ()=>{ tip.style.display='none'; });
-        sp.addEventListener('click', e => {
-          if (!editUnlocked) return;
+        const sp=document.createElement('span');
+        sp.className='milestone '+(MCLASS[ms]||'');
+        sp.textContent=ABBR[ms]||'?';
+        sp.dataset.tip=creator+' · '+ms+' due · '+d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+        sp.addEventListener('mouseenter',()=>{ tip.textContent=sp.dataset.tip; tip.style.display='block'; });
+        sp.addEventListener('mousemove', e=>{ tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY-32)+'px'; });
+        sp.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
+        sp.addEventListener('click',e=>{
+          if(!editUnlocked) return;
           e.stopPropagation(); tip.style.display='none'; openPop(creator,dkey(d),ms,e);
         });
         td.appendChild(sp);
       }
-
-      // Click empty area to add
-      td.addEventListener('click', e => {
-        if (!editUnlocked) return;
-        if (e.target===td && !ms) { e.stopPropagation(); openPop(creator,dkey(d),null,e); }
+      td.addEventListener('click',e=>{
+        if(!editUnlocked) return;
+        if(e.target===td&&!ms){ e.stopPropagation(); openPop(creator,dkey(d),null,e); }
       });
-
-      tr.appendChild(td);
-      pm = d.getMonth();
+      tr.appendChild(td); pm=d.getMonth();
     });
-
     table.appendChild(tr);
   });
 }
 
 function updateCount() {
-  document.getElementById('meta-count').textContent = Object.keys(schedules).length;
+  document.getElementById('meta-count').textContent=Object.keys(schedules).length;
 }
 
 // ============================================================
@@ -623,130 +613,211 @@ const popDate   = document.getElementById('pop-date');
 const popError  = document.getElementById('pop-error');
 const popDel    = document.getElementById('pop-delete');
 
-MS_NAMES.forEach(n => {
-  const o = document.createElement('option'); o.value=n; o.textContent=n; popType.appendChild(o);
-});
+MS_NAMES.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; popType.appendChild(o); });
 
 let popState = null;
-
 function syncCreatorOptions() {
-  popCreSel.innerHTML = '';
-  Object.keys(schedules).forEach(c => {
-    const o = document.createElement('option'); o.value=c; o.textContent=c; popCreSel.appendChild(o);
-  });
+  popCreSel.innerHTML='';
+  Object.keys(schedules).forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; popCreSel.appendChild(o); });
 }
-
-function openPop(creator, dateStr, existingMs, event) {
-  if (!editUnlocked) return;
-  popState = { creator, origDate: dateStr, isEdit: !!existingMs };
+function openPop(creator,dateStr,existingMs,event) {
+  if(!editUnlocked) return;
+  popState={creator,origDate:dateStr,isEdit:!!existingMs};
   syncCreatorOptions();
-  popTitle.textContent  = existingMs ? 'Edit Milestone' : 'Add Milestone';
-  popCreSel.value       = creator;
-  popType.value         = existingMs || MS_NAMES[0];
-  popDate.value         = dateStr;
+  popTitle.textContent=existingMs?'Edit Milestone':'Add Milestone';
+  popCreSel.value=creator; popType.value=existingMs||MS_NAMES[0]; popDate.value=dateStr;
   popError.classList.remove('show');
-  popDel.style.display  = existingMs ? 'inline-flex' : 'none';
-  popover.style.display = 'block';
-
-  const pw=248, ph=260, vw=window.innerWidth, vh=window.innerHeight;
-  let left=event.clientX+14, top=event.clientY-80;
-  if (left+pw>vw-8) left=event.clientX-pw-14;
-  if (top<8) top=8;
-  if (top+ph>vh-8) top=vh-ph-8;
+  popDel.style.display=existingMs?'inline-flex':'none';
+  popover.style.display='block';
+  const pw=248,ph=260,vw=window.innerWidth,vh=window.innerHeight;
+  let left=event.clientX+14,top=event.clientY-80;
+  if(left+pw>vw-8) left=event.clientX-pw-14;
+  if(top<8) top=8; if(top+ph>vh-8) top=vh-ph-8;
   popover.style.left=left+'px'; popover.style.top=top+'px';
 }
-
-function closePop() {
-  popover.style.display='none'; popState=null; popError.classList.remove('show');
-}
-
+function closePop() { popover.style.display='none'; popState=null; popError.classList.remove('show'); }
 function handleSave() {
-  if (!popState || !editUnlocked) return;
-  const { origDate, isEdit } = popState;
-  const newCreator=popCreSel.value, newMs=popType.value, newDate=popDate.value;
-  if (!newDate) { showErr('Please select a date.'); return; }
-  const sched = schedules[newCreator];
-  const dateChanged = newDate!==origDate || newCreator!==popState.creator;
-  if (dateChanged && sched[newDate]) { showErr(newDate+' already has a milestone for '+newCreator+'.'); return; }
-  if (isEdit) delete schedules[popState.creator][origDate];
-  sched[newDate] = newMs;
+  if(!popState||!editUnlocked) return;
+  const {origDate,isEdit}=popState;
+  const newCreator=popCreSel.value,newMs=popType.value,newDate=popDate.value;
+  if(!newDate){ showErr('Please select a date.'); return; }
+  const sched=schedules[newCreator];
+  if((newDate!==origDate||newCreator!==popState.creator)&&sched[newDate]){ showErr(newDate+' already has a milestone for '+newCreator+'.'); return; }
+  if(isEdit) delete schedules[popState.creator][origDate];
+  sched[newDate]=newMs;
   persist(); renderTable(); closePop();
 }
-
 function handleDelete() {
-  if (!popState?.isEdit || !editUnlocked) return;
+  if(!popState?.isEdit||!editUnlocked) return;
   delete schedules[popState.creator][popState.origDate];
   persist(); renderTable(); closePop();
 }
+function showErr(msg){ popError.textContent=msg; popError.classList.add('show'); }
 
-function showErr(msg) { popError.textContent=msg; popError.classList.add('show'); }
-
-document.getElementById('pop-save').addEventListener('click', handleSave);
-document.getElementById('pop-delete').addEventListener('click', handleDelete);
-document.getElementById('pop-cancel').addEventListener('click', closePop);
-document.getElementById('pop-close').addEventListener('click', closePop);
-document.addEventListener('keydown', e => {
-  if (e.key==='Escape') { closePop(); hidePwModal(); }
-});
-document.addEventListener('click', e => {
-  if (popover.style.display!=='none' && !popover.contains(e.target)) closePop();
-  if (pwOverlay.style.display!=='none' && e.target===pwOverlay) hidePwModal();
+document.getElementById('pop-save').addEventListener('click',handleSave);
+document.getElementById('pop-delete').addEventListener('click',handleDelete);
+document.getElementById('pop-cancel').addEventListener('click',closePop);
+document.getElementById('pop-close').addEventListener('click',closePop);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closePop(); hidePwModal(); hideGhModal(); } });
+document.addEventListener('click',e=>{
+  if(popover.style.display!=='none'&&!popover.contains(e.target)) closePop();
+  if(pwOverlay.style.display!=='none'&&e.target===pwOverlay) hidePwModal();
+  if(document.getElementById('gh-overlay').style.display!=='none'&&e.target===document.getElementById('gh-overlay')) hideGhModal();
 });
 
 // ============================================================
 // ADD CREATOR
 // ============================================================
-const addForm   = document.getElementById('add-form');
-const addInput  = document.getElementById('add-input');
-const btnAddCre = document.getElementById('btn-add-creator');
-
-btnAddCre.addEventListener('click', () => {
-  if (!editUnlocked) return;
-  addForm.classList.add('open'); btnAddCre.style.display='none'; addInput.value=''; addInput.focus();
-});
-
-function confirmAdd() {
-  if (!editUnlocked) return;
-  const name = addInput.value.trim();
-  if (!name) return;
-  if (schedules[name]) { alert(name+' already exists.'); return; }
+const addForm=document.getElementById('add-form'),addInput=document.getElementById('add-input'),btnAddCre=document.getElementById('btn-add-creator');
+btnAddCre.addEventListener('click',()=>{ if(!editUnlocked) return; addForm.classList.add('open'); btnAddCre.style.display='none'; addInput.value=''; addInput.focus(); });
+function confirmAdd(){
+  if(!editUnlocked) return;
+  const name=addInput.value.trim(); if(!name) return;
+  if(schedules[name]){ alert(name+' already exists.'); return; }
   schedules[name]={}; persist(); renderTable(); updateCount(); cancelAdd();
 }
-function cancelAdd() { addForm.classList.remove('open'); btnAddCre.style.display=''; }
-
-document.getElementById('btn-add-confirm').addEventListener('click', confirmAdd);
-document.getElementById('btn-add-cancel').addEventListener('click', cancelAdd);
-addInput.addEventListener('keydown', e => { if(e.key==='Enter') confirmAdd(); if(e.key==='Escape') cancelAdd(); });
+function cancelAdd(){ addForm.classList.remove('open'); btnAddCre.style.display=''; }
+document.getElementById('btn-add-confirm').addEventListener('click',confirmAdd);
+document.getElementById('btn-add-cancel').addEventListener('click',cancelAdd);
+addInput.addEventListener('keydown',e=>{ if(e.key==='Enter') confirmAdd(); if(e.key==='Escape') cancelAdd(); });
 
 // ============================================================
 // RESET
 // ============================================================
-document.getElementById('btn-reset').addEventListener('click', () => {
-  if (!editUnlocked) return;
-  if (confirm('Reset all schedules to the original 5-creator defaults?\nThis will clear all edits.')) {
-    schedules = JSON.parse(JSON.stringify(ORIGINAL_SCHEDULES));
-    localStorage.removeItem(LS_KEY);
-    renderTable(); updateCount();
+document.getElementById('btn-reset').addEventListener('click',()=>{
+  if(!editUnlocked) return;
+  if(confirm('Reset all schedules to the original 5-creator defaults?\nThis will clear all edits.')){
+    schedules=JSON.parse(JSON.stringify(ORIGINAL_SCHEDULES));
+    localStorage.removeItem(LS_KEY); renderTable(); updateCount();
   }
 });
 
 // ============================================================
-// EXPORT
+// EXPORT HTML
 // ============================================================
-document.getElementById('btn-export').addEventListener('click', () => {
-  if (!editUnlocked) return;
-  let html = document.documentElement.outerHTML;
-  const S='//__SCHEDULES_START__', E='//__SCHEDULES_END__';
-  const si=html.indexOf(S), ei=html.indexOf(E)+E.length;
-  if (si===-1||ei<E.length) { alert('Export markers not found — cannot export.'); return; }
-  const block=S+'\nlet schedules = '+JSON.stringify(schedules,null,2)+';\n'+E;
-  html=html.slice(0,si)+block+html.slice(ei);
+document.getElementById('btn-export').addEventListener('click',()=>{
+  if(!editUnlocked) return;
+  const html=getUpdatedHTML();
+  if(!html){ alert('Export markers not found.'); return; }
   const a=Object.assign(document.createElement('a'),{
     href:URL.createObjectURL(new Blob([html],{type:'text/html'})),
     download:'MINDEF_x_UNFOLD_Q2_Timeline.html'
   });
   a.click(); URL.revokeObjectURL(a.href);
 });
+
+// ============================================================
+// GITHUB PUSH
+// ============================================================
+const GH_LS = { pat:'gh_pat', repo:'gh_repo', path:'gh_path', branch:'gh_branch' };
+
+const ghOverlay  = document.getElementById('gh-overlay');
+const ghPatInput = document.getElementById('gh-pat');
+const ghRepo     = document.getElementById('gh-repo');
+const ghFilepath = document.getElementById('gh-filepath');
+const ghBranch   = document.getElementById('gh-branch');
+const ghError    = document.getElementById('gh-error');
+const ghPatToggle= document.getElementById('gh-pat-toggle');
+const btnGithub  = document.getElementById('btn-github');
+
+function showGhModal() {
+  // Pre-fill from localStorage (never pre-fill PAT for security)
+  ghRepo.value     = localStorage.getItem(GH_LS.repo)   || '';
+  ghFilepath.value = localStorage.getItem(GH_LS.path)   || '';
+  ghBranch.value   = localStorage.getItem(GH_LS.branch) || 'main';
+  ghPatInput.value = ''; ghPatInput.type='password'; ghPatToggle.textContent='show';
+  ghError.textContent = '';
+  ghOverlay.style.display='flex';
+  setTimeout(()=>ghPatInput.focus(),50);
+}
+function hideGhModal() { ghOverlay.style.display='none'; }
+
+ghPatToggle.addEventListener('click',()=>{
+  const hide=ghPatInput.type==='password';
+  ghPatInput.type=hide?'text':'password'; ghPatToggle.textContent=hide?'hide':'show';
+});
+
+function toBase64UTF8(str) {
+  const bytes=new TextEncoder().encode(str);
+  let bin=''; bytes.forEach(b=>bin+=String.fromCharCode(b));
+  return btoa(bin);
+}
+
+async function doPush(pat, repo, path, branch) {
+  const html = getUpdatedHTML();
+  if (!html) throw new Error('Export markers not found in source.');
+
+  // Fetch current file SHA
+  const metaRes = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`, {
+    headers:{ 'Authorization':'Bearer '+pat, 'Accept':'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28' }
+  });
+  if (!metaRes.ok) {
+    const e=await metaRes.json().catch(()=>({}));
+    throw new Error(e.message || `Could not fetch file (${metaRes.status}). Check repo, path and branch.`);
+  }
+  const meta = await metaRes.json();
+
+  // Push updated file
+  const now = new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const pushRes = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(path)}`, {
+    method:'PUT',
+    headers:{ 'Authorization':'Bearer '+pat, 'Accept':'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28', 'Content-Type':'application/json' },
+    body: JSON.stringify({ message:`Update timeline — ${now}`, content:toBase64UTF8(html), sha:meta.sha, branch })
+  });
+  if (!pushRes.ok) {
+    const e=await pushRes.json().catch(()=>({}));
+    throw new Error(e.message || `Push failed (${pushRes.status}). Check your PAT has Contents: write permission.`);
+  }
+}
+
+async function triggerPush(pat, repo, path, branch) {
+  btnGithub.disabled=true; btnGithub.textContent='Pushing...';
+  try {
+    await doPush(pat, repo, path, branch);
+    btnGithub.textContent='✓ Pushed!';
+    btnGithub.classList.remove('btn-accent'); btnGithub.classList.add('btn-success');
+    setTimeout(()=>{ btnGithub.textContent='↑ Push to GitHub'; btnGithub.classList.add('btn-accent'); btnGithub.classList.remove('btn-success'); btnGithub.disabled=false; }, 3000);
+  } catch(err) {
+    alert('Push failed: '+err.message);
+    btnGithub.textContent='↑ Push to GitHub'; btnGithub.disabled=false;
+  }
+}
+
+// "Push to GitHub" button: push directly if settings exist, otherwise open settings
+btnGithub.addEventListener('click',()=>{
+  if(!editUnlocked) return;
+  const pat=localStorage.getItem(GH_LS.pat);
+  const repo=localStorage.getItem(GH_LS.repo);
+  const path=localStorage.getItem(GH_LS.path);
+  const branch=localStorage.getItem(GH_LS.branch)||'main';
+  if(!pat||!repo||!path){ showGhModal(); return; }
+  triggerPush(pat,repo,path,branch);
+});
+
+// "⚙" settings button: always show settings
+document.getElementById('btn-gh-settings').addEventListener('click',()=>{ if(!editUnlocked) return; showGhModal(); });
+
+// Save settings & push
+document.getElementById('gh-save').addEventListener('click', async ()=>{
+  const pat=ghPatInput.value.trim()||localStorage.getItem(GH_LS.pat);
+  const repo=ghRepo.value.trim();
+  const path=ghFilepath.value.trim();
+  const branch=ghBranch.value.trim()||'main';
+  if(!pat){ ghError.textContent='Please enter your Personal Access Token.'; return; }
+  if(!repo||!repo.includes('/')){ ghError.textContent='Enter repo as owner/repo (e.g. yuhenghu93/UNFOLD-Creators-Timelines).'; return; }
+  if(!path){ ghError.textContent='Enter the file path in the repo.'; return; }
+
+  // Save settings
+  if(ghPatInput.value.trim()) localStorage.setItem(GH_LS.pat, pat);
+  localStorage.setItem(GH_LS.repo, repo);
+  localStorage.setItem(GH_LS.path, path);
+  localStorage.setItem(GH_LS.branch, branch);
+
+  hideGhModal();
+  triggerPush(pat,repo,path,branch);
+});
+
+document.getElementById('gh-cancel').addEventListener('click',hideGhModal);
 
 // ============================================================
 // INIT
@@ -758,6 +829,5 @@ document.getElementById('footer').textContent =
 
 renderTable(); updateCount();
 </script>
-
-
-</body></html>
+</body>
+</html>
